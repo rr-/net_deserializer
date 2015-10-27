@@ -14,6 +14,11 @@ BinaryReader::~BinaryReader()
 {
 }
 
+bool BinaryReader::eof() const
+{
+    return source_ptr >= source_end;
+}
+
 void BinaryReader::skip(const std::size_t n)
 {
     if (source_ptr + n > source_end)

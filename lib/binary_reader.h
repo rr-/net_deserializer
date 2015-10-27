@@ -14,6 +14,7 @@ namespace net_deserializer
             BinaryReader(const std::vector<unsigned char> &input);
             ~BinaryReader();
             void skip(const std::size_t n);
+            bool eof() const;
             template<typename T> T read()
             {
                 T ret;
