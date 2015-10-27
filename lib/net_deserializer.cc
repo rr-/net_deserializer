@@ -159,7 +159,7 @@ std::unique_ptr<Record>
         }
         auto child_record = reader_map[record_type](input_reader);
         root->children.push_back(std::move(child_record));
+        break;
     }
-
     return root;
 }
