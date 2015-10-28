@@ -14,7 +14,7 @@ std::unique_ptr<Node> net_deserializer::deserialize(
     const std::vector<unsigned char> &input)
 {
     BinaryReader input_reader(input);
-    auto root = std::make_unique<ListNode>("Root");
+    auto root = std::make_unique<AggregateNode>("Root");
     while (!input_reader.eof())
     {
         try

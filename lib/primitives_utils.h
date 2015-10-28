@@ -6,5 +6,5 @@
 namespace net_deserializer
 {
     template<typename T> std::unique_ptr<Node> make_primitive(
-        BinaryReader &reader);
+        const std::string &name, BinaryReader &reader);
 }

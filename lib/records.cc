@@ -67,11 +67,11 @@ namespace
 
 static std::unique_ptr<Node> read_serialized_stream_header(BinaryReader &reader)
 {
-    auto node = std::make_unique<DictionaryNode>("SerializedStreamHeader");
-    node->properties["RootId"] = make_primitive<int32_t>(reader);
-    node->properties["HeaderId"] = make_primitive<int32_t>(reader);
-    node->properties["MajorVersion"] = make_primitive<int32_t>(reader);
-    node->properties["MinorVersion"] = make_primitive<int32_t>(reader);
+    auto node = std::make_unique<AggregateNode>("SerializedStreamHeader");
+    node->add(make_primitive<int32_t>("RootId", reader));
+    node->add(make_primitive<int32_t>("HeaderId", reader));
+    node->add(make_primitive<int32_t>("MajorVersion", reader));
+    node->add(make_primitive<int32_t>("MinorVersion", reader));
     return std::move(node);
 }
 
@@ -82,7 +82,12 @@ static std::unique_ptr<Node> read_array_single_primitive(BinaryReader &reader)
 
 static std::unique_ptr<Node> read_array_single_object(BinaryReader &reader)
 {
-    throw NotImplementedError("Array of single object");
+    auto node = std::make_unique<AggregateNode>("Array");
+    auto elements_node = std::make_unique<AggregateNode>("Elements");
+    node->add(make_primitive<uint32_t>("ObjectId", reader));
+    node->add(make_primitive<uint32_t>("Length", reader));
+    node->add(std::move(elements_node));
+    return node;
 }
 
 static std::unique_ptr<Node> read_array_single_string(BinaryReader &reader)
@@ -92,21 +97,19 @@ static std::unique_ptr<Node> read_array_single_string(BinaryReader &reader)
 
 static std::unique_ptr<Node> read_binary_method_call(BinaryReader &reader)
 {
-    auto node = std::make_unique<DictionaryNode>("BinaryMethodCall");
-    auto flags_node = make_primitive<uint32_t>(reader);
-    const auto flags = std::stoi(
-        dynamic_cast<PrimitiveNode*>(flags_node.get())->value);
-    node->properties["MessageEnum"] = std::move(flags_node);
-    node->properties["MethodName"] = read_primitive(reader);
-    node->properties["TypeName"] = read_primitive(reader);
+    auto node = std::make_unique<AggregateNode>("BinaryMethodCall");
+    const auto flags = reader.read<uint32_t>();
+    node->add(std::make_unique<LeafNode>("MessageEnum", flags));
+    node->add(read_primitive("MethodName", reader));
+    node->add(read_primitive("TypeName", reader));
     if (flags & MessageFlags::ContextInline)
-        node->properties["CallContext"] = read_primitive(reader);
-    else
-        node->properties["CallContext"] = std::make_unique<PrimitiveNode>();
+        node->add(read_primitive("CallContext", reader));
     if (flags & MessageFlags::ArgsInline)
-        node->properties["Args"] = read_array_single_primitive(reader);
-    else
-        node->properties["Args"] = std::make_unique<ListNode>("Args");
+    {
+        auto args_node = read_array_single_primitive(reader);
+        args_node->name = "Args";
+        node->add(std::move(args_node));
+    }
     return std::move(node);
 }
 

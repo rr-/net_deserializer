@@ -4,81 +4,65 @@
 
 using namespace net_deserializer;
 
-namespace
-{
-    enum class PrimitiveType : uint8_t
-    {
-        Boolean  = 1,
-        Byte     = 2,
-        Char     = 3,
-        Decimal  = 5,
-        Double   = 6,
-        Int16    = 7,
-        Int32    = 8,
-        Int64    = 9,
-        SByte    = 10,
-        Single   = 11,
-        TimeSpan = 12,
-        DateTime = 13,
-        UInt16   = 14,
-        UInt32   = 15,
-        UInt64   = 16,
-        Null     = 17,
-        String   = 18,
-    };
-}
-
-std::unique_ptr<Node> net_deserializer::read_primitive(BinaryReader &reader)
+std::unique_ptr<Node> net_deserializer::read_primitive(
+    const std::string &name, BinaryReader &reader)
 {
     const auto primitive_type = reader.read<PrimitiveType>();
+    return net_deserializer::read_primitive_untyped(name, reader, primitive_type);
+}
 
+std::unique_ptr<Node> net_deserializer::read_primitive_untyped(
+    const std::string &name,
+    BinaryReader &reader,
+    const PrimitiveType primitive_type)
+{
     if (primitive_type == PrimitiveType::Boolean)
-        return make_primitive<bool>(reader);
+        return make_primitive<bool>(name, reader);
 
     if (primitive_type == PrimitiveType::Byte)
-        return make_primitive<uint8_t>(reader);
+        return make_primitive<uint8_t>(name, reader);
 
     if (primitive_type == PrimitiveType::Char)
-        return make_primitive<char>(reader);
+        throw NotImplementedError("Reading Char is not implemented (UTF8)");
 
     if (primitive_type == PrimitiveType::Decimal)
-        return make_primitive<float>(reader); // TODO: verify
+        throw NotImplementedError("Reading Decimal is not implemented");
 
     if (primitive_type == PrimitiveType::Double)
-        return make_primitive<double>(reader);
+        return make_primitive<double>(name, reader);
 
     if (primitive_type == PrimitiveType::Int16)
-        return make_primitive<int16_t>(reader);
+        return make_primitive<int16_t>(name, reader);
 
     if (primitive_type == PrimitiveType::Int32)
-        return make_primitive<int32_t>(reader);
+        return make_primitive<int32_t>(name, reader);
 
     if (primitive_type == PrimitiveType::Int64)
-        return make_primitive<int64_t>(reader);
+        return make_primitive<int64_t>(name, reader);
 
     if (primitive_type == PrimitiveType::UInt16)
-        return make_primitive<uint16_t>(reader);
+        return make_primitive<uint16_t>(name, reader);
 
     if (primitive_type == PrimitiveType::UInt32)
-        return make_primitive<uint32_t>(reader);
+        return make_primitive<uint32_t>(name, reader);
 
     if (primitive_type == PrimitiveType::UInt64)
-        return make_primitive<uint64_t>(reader);
+        return make_primitive<uint64_t>(name, reader);
 
     if (primitive_type == PrimitiveType::SByte)
-        return make_primitive<int8_t>(reader);
+        return make_primitive<int8_t>(name, reader);
 
     if (primitive_type == PrimitiveType::Single)
-        return make_primitive<float>(reader);
+        return make_primitive<float>(name, reader);
 
     if (primitive_type == PrimitiveType::TimeSpan)
-        return make_primitive<uint64_t>(reader); // TODO: verify
+        return make_primitive<int64_t>(name, reader);
 
     if (primitive_type == PrimitiveType::DateTime)
-        return make_primitive<uint64_t>(reader); // TODO: verify
+        return make_primitive<int64_t>(name, reader);
 
     if (primitive_type == PrimitiveType::Null)
-        return std::make_unique<PrimitiveNode>();
+        return std::make_unique<LeafNode>(name);
 
     if (primitive_type == PrimitiveType::String)
     {
@@ -94,7 +78,7 @@ std::unique_ptr<Node> net_deserializer::read_primitive(BinaryReader &reader)
         const auto buf = std::make_unique<char[]>(length);
         for (std::size_t i = 0; i < length; i++)
             buf[i] = reader.read<char>();
-        return std::make_unique<PrimitiveNode>(std::string(buf.get(), length));
+        return std::make_unique<LeafNode>(name, std::string(buf.get(), length));
     }
 
     throw NotImplementedError("Unknown primitive type: "
