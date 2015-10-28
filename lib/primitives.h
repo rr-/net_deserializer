@@ -26,11 +26,11 @@ namespace net_deserializer
         String   = 18,
     };
 
-    std::unique_ptr<Node> read_primitive(
+    std::unique_ptr<LeafNode> read_primitive(
         const std::string &name,
         BinaryReader &reader);
 
-    std::unique_ptr<Node> read_primitive(
+    std::unique_ptr<LeafNode> read_primitive(
         const std::string &name,
         BinaryReader &reader,
         const PrimitiveType primitive_type);

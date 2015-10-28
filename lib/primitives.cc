@@ -4,14 +4,14 @@
 
 using namespace net_deserializer;
 
-std::unique_ptr<Node> net_deserializer::read_primitive(
+std::unique_ptr<LeafNode> net_deserializer::read_primitive(
     const std::string &name, BinaryReader &reader)
 {
     const auto primitive_type = reader.read<PrimitiveType>();
     return net_deserializer::read_primitive(name, reader, primitive_type);
 }
 
-std::unique_ptr<Node> net_deserializer::read_primitive(
+std::unique_ptr<LeafNode> net_deserializer::read_primitive(
     const std::string &name,
     BinaryReader &reader,
     const PrimitiveType primitive_type)
