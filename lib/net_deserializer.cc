@@ -1,3 +1,4 @@
+#include <iostream>
 #include "net_deserializer.h"
 #include "records.h"
 
@@ -16,8 +17,16 @@ std::unique_ptr<Node> net_deserializer::deserialize(
     auto root = std::make_unique<ListNode>("Root");
     while (!input_reader.eof())
     {
-        auto child_node = read_record(input_reader);
-        root->elements.push_back(std::move(child_node));
+        try
+        {
+            auto child_node = read_record(input_reader);
+            root->elements.push_back(std::move(child_node));
+        }
+        catch (...)
+        {
+            std::cerr << root->as_xml() << std::endl;
+            throw;
+        }
     }
     return root;
 }

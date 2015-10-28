@@ -30,7 +30,7 @@ namespace net_deserializer
         PrimitiveNode(const float value);
         PrimitiveNode(const double value);
         PrimitiveNode(const std::string &value);
-        std::string as_xml(int depth) const override;
+        std::string as_xml(int depth = 0) const override;
 
         std::string value;
     };
@@ -47,7 +47,7 @@ namespace net_deserializer
     {
     public:
         ListNode(const std::string &name);
-        std::string as_xml(int depth) const override;
+        std::string as_xml(int depth = 0) const override;
 
         std::vector<std::unique_ptr<Node>> elements;
     };
@@ -56,7 +56,7 @@ namespace net_deserializer
     {
     public:
         DictionaryNode(const std::string &name);
-        std::string as_xml(int depth) const override;
+        std::string as_xml(int depth = 0) const override;
 
         std::map<std::string, std::unique_ptr<Node>> properties;
     };
