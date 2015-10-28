@@ -3,11 +3,10 @@
 #include <cstdint>
 #include <cstring>
 #include <vector>
+#include "error.h"
 
 namespace net_deserializer
 {
-    class CorruptDataError;
-
     class BinaryReader
     {
         public:
