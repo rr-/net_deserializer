@@ -27,45 +27,12 @@ static const auto test_data = std::string(
     "\x06\x06\x00\x00\x00\x02\x57\x41\x06\x07\x00\x00\x00\x05\x39\x38"
     "\x30\x35\x34\x0B", 372);
 
-static void print(
-    const net_deserializer::Record *node,
-    const size_t pad_size = 0)
-{
-    const std::string pad(pad_size, ' ');
-
-    std::cout << pad << "<node>\n";
-    std::cout << pad << "  <name>" << node->name << "</node>\n";
-
-    if (!node->properties.empty())
-    {
-        std::cout << pad << "  <properties>\n";
-        for (const auto kv : node->properties)
-        {
-            std::cout << pad << "    <property>\n";
-            std::cout << pad << "      <key>" << kv.first << "</key>\n";
-            std::cout << pad << "      <value>" << kv.second << "</value>\n";
-            std::cout << pad << "    </property>\n";
-        }
-        std::cout << pad << "  </properties>\n";
-    }
-
-    if (!node->children.empty())
-    {
-        std::cout << pad << "  <children>\n";
-        for (const auto &child : node->children)
-            print(child.get(), pad_size + 4);
-        std::cout << pad << "  </children>\n";
-    }
-
-    std::cout << pad << "</node>\n";
-}
-
 int main(void)
 {
     try
     {
         auto root_node = net_deserializer::deserialize(test_data);
-        print(root_node.get());
+        std::cout << root_node->as_xml();
         std::cerr << "Finished" << std::endl;
     }
     catch (std::exception &e)

@@ -4,7 +4,7 @@
 #include "net_deserializer.h"
 
 using namespace net_deserializer;
-using RecordReader = std::function<std::unique_ptr<Record>(BinaryReader &)>;
+using NodeFactory = std::function<std::unique_ptr<Node>(BinaryReader &)>;
 
 namespace
 {
@@ -83,23 +83,26 @@ namespace
         ExceptionInArray       = 0x00002000,
         GenericMethod          = 0x00008000,
     };
-
 }
 
-static std::unique_ptr<Record>
+static std::unique_ptr<Node>
     read_serialized_stream_header(BinaryReader &reader)
 {
-    auto node = std::make_unique<Record>("SerializedStreamHeader");
-    node->properties["root_id"] = std::to_string(reader.read<int32_t>());
-    node->properties["header_id"] = std::to_string(reader.read<int32_t>());
-    node->properties["major_version"] = std::to_string(reader.read<int32_t>());
-    node->properties["minor_version"] = std::to_string(reader.read<int32_t>());
-    return node;
+    auto node = std::make_unique<DictionaryNode>("SerializedStreamHeader");
+    node->properties["RootId"]
+        = std::make_unique<PrimitiveNode>(reader.read<int32_t>());
+    node->properties["HeaderId"]
+        = std::make_unique<PrimitiveNode>(reader.read<int32_t>());
+    node->properties["MajorVersion"]
+        = std::make_unique<PrimitiveNode>(reader.read<int32_t>());
+    node->properties["MinorVersion"]
+        = std::make_unique<PrimitiveNode>(reader.read<int32_t>());
+    return std::move(node);
 }
 
-static RecordReader read_stub(const RecordType record_type)
+static NodeFactory read_stub(const RecordType record_type)
 {
-    return [=](BinaryReader &) -> std::unique_ptr<Record>
+    return [=](BinaryReader &) -> std::unique_ptr<Node>
     {
         throw NotImplementedError(
             "Reading record type "
@@ -109,7 +112,7 @@ static RecordReader read_stub(const RecordType record_type)
 }
 
 using RT = RecordType;
-static std::map<RecordType, RecordReader> reader_map =
+static std::map<RecordType, NodeFactory> node_factory_map =
 {
     {RT::SerializedStreamHeader,         read_serialized_stream_header},
     {RT::ClassWithId,                    read_stub(RT::ClassWithId)},
@@ -133,32 +136,27 @@ static std::map<RecordType, RecordReader> reader_map =
     {RT::MethodReturn,                   read_stub(RT::MethodReturn)},
 };
 
-Record::Record(const std::string &name) : name(name)
-{
-}
-
-std::unique_ptr<Record>
-    net_deserializer::deserialize(const std::string &input)
+std::unique_ptr<Node> net_deserializer::deserialize(const std::string &input)
 {
     std::vector<unsigned char> v(input.begin(), input.end());
     return net_deserializer::deserialize(v);
 }
 
-std::unique_ptr<Record>
-    net_deserializer::deserialize(const std::vector<unsigned char> &input)
+std::unique_ptr<Node> net_deserializer::deserialize(
+    const std::vector<unsigned char> &input)
 {
     BinaryReader input_reader(input);
-    auto root = std::make_unique<Record>("Root");
+    auto root = std::make_unique<ListNode>("Root");
     while (!input_reader.eof())
     {
         const RecordType record_type = input_reader.read<RecordType>();
-        if (reader_map.find(record_type) == reader_map.end())
+        if (node_factory_map.find(record_type) == node_factory_map.end())
         {
             throw NotImplementedError("Unknown record type: "
                 + std::to_string(static_cast<int>(record_type)));
         }
-        auto child_record = reader_map[record_type](input_reader);
-        root->children.push_back(std::move(child_record));
+        auto child_node = node_factory_map[record_type](input_reader);
+        root->elements.push_back(std::move(child_node));
         break;
     }
     return root;
