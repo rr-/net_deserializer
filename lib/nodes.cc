@@ -13,7 +13,7 @@ Node::Node(const std::string &name) : name(name)
 }
 
 LeafNode::LeafNode(const std::string &name)
-    : Node(name), value("(null)") {}
+    : Node(name), value("") {}
 LeafNode::LeafNode(const std::string &name, const bool value)
     : Node(name), value(std::to_string(value)) {}
 LeafNode::LeafNode(const std::string &name, const char value)

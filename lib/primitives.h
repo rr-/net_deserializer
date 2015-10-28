@@ -27,8 +27,10 @@ namespace net_deserializer
     };
 
     std::unique_ptr<Node> read_primitive(
-        const std::string &name, BinaryReader &reader);
-    std::unique_ptr<Node> read_primitive_untyped(
+        const std::string &name,
+        BinaryReader &reader);
+
+    std::unique_ptr<Node> read_primitive(
         const std::string &name,
         BinaryReader &reader,
         const PrimitiveType primitive_type);
