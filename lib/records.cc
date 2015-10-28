@@ -65,8 +65,7 @@ namespace
     };
 }
 
-static std::unique_ptr<Node>
-    read_serialized_stream_header(BinaryReader &reader)
+static std::unique_ptr<Node> read_serialized_stream_header(BinaryReader &reader)
 {
     auto node = std::make_unique<DictionaryNode>("SerializedStreamHeader");
     node->properties["RootId"] = make_primitive<int32_t>(reader);
@@ -76,12 +75,38 @@ static std::unique_ptr<Node>
     return std::move(node);
 }
 
-static std::unique_ptr<Node>
-    read_binary_method_call(BinaryReader &reader)
+static std::unique_ptr<Node> read_array_single_primitive(BinaryReader &reader)
+{
+    throw NotImplementedError("Array of single primitive");
+}
+
+static std::unique_ptr<Node> read_array_single_object(BinaryReader &reader)
+{
+    throw NotImplementedError("Array of single object");
+}
+
+static std::unique_ptr<Node> read_array_single_string(BinaryReader &reader)
+{
+    throw NotImplementedError("Array of single string");
+}
+
+static std::unique_ptr<Node> read_binary_method_call(BinaryReader &reader)
 {
     auto node = std::make_unique<DictionaryNode>("BinaryMethodCall");
-    node->properties["MessageEnum"] = make_primitive<uint32_t>(reader);
+    auto flags_node = make_primitive<uint32_t>(reader);
+    const auto flags = std::stoi(
+        dynamic_cast<PrimitiveNode*>(flags_node.get())->value);
+    node->properties["MessageEnum"] = std::move(flags_node);
     node->properties["MethodName"] = read_primitive(reader);
+    node->properties["TypeName"] = read_primitive(reader);
+    if (flags & MessageFlags::ContextInline)
+        node->properties["CallContext"] = read_primitive(reader);
+    else
+        node->properties["CallContext"] = std::make_unique<PrimitiveNode>();
+    if (flags & MessageFlags::ArgsInline)
+        node->properties["Args"] = read_array_single_primitive(reader);
+    else
+        node->properties["Args"] = std::make_unique<ListNode>("Args");
     return std::move(node);
 }
 
@@ -114,9 +139,9 @@ static std::map<RecordType, NodeFactory> node_factory_map =
     {RT::BinaryLibary,                   read_stub(RT::BinaryLibary)},
     {RT::ObjectNullMultiple256,          read_stub(RT::ObjectNullMultiple256)},
     {RT::ObjectNullMultiple,             read_stub(RT::ObjectNullMultiple)},
-    {RT::ArraySinglePrimitive,           read_stub(RT::ArraySinglePrimitive)},
-    {RT::ArraySingleObject,              read_stub(RT::ArraySingleObject)},
-    {RT::ArraySingleString,              read_stub(RT::ArraySingleString)},
+    {RT::ArraySinglePrimitive,           read_array_single_primitive},
+    {RT::ArraySingleObject,              read_array_single_object},
+    {RT::ArraySingleString,              read_array_single_string},
     {RT::MethodCall,                     read_binary_method_call},
     {RT::MethodReturn,                   read_stub(RT::MethodReturn)},
 };

@@ -16,8 +16,20 @@ namespace net_deserializer
     class PrimitiveNode final : public Node
     {
     public:
-        PrimitiveNode() = delete;
+        PrimitiveNode();
+        PrimitiveNode(const bool value);
+        PrimitiveNode(const char value);
+        PrimitiveNode(const int8_t value);
+        PrimitiveNode(const int16_t value);
         PrimitiveNode(const int32_t value);
+        PrimitiveNode(const int64_t value);
+        PrimitiveNode(const uint8_t value);
+        PrimitiveNode(const uint16_t value);
+        PrimitiveNode(const uint32_t value);
+        PrimitiveNode(const uint64_t value);
+        PrimitiveNode(const float value);
+        PrimitiveNode(const double value);
+        PrimitiveNode(const std::string &value);
         std::string as_xml(int depth) const override;
 
         std::string value;

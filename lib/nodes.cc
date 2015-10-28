@@ -8,10 +8,20 @@ static std::string pad(int depth)
     return std::string(depth * 4, ' ');
 }
 
-PrimitiveNode::PrimitiveNode(const int32_t number)
-    : value(std::to_string(number))
-{
-}
+PrimitiveNode::PrimitiveNode() : value("(null)") {}
+PrimitiveNode::PrimitiveNode(const bool v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const char v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const int8_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const int16_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const int32_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const int64_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const uint8_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const uint16_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const uint32_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const uint64_t v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const float v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const double v) : value(std::to_string(v)) {}
+PrimitiveNode::PrimitiveNode(const std::string &s) : value(s) {}
 
 std::string PrimitiveNode::as_xml(int depth) const
 {
@@ -31,9 +41,7 @@ std::string ListNode::as_xml(int depth) const
     std::stringstream ret;
     ret << pad(depth) << "<" << name << ">\n";
     for (const auto &element : elements)
-    {
         ret << element->as_xml(depth + 1);
-    }
     ret << pad(depth) << "</" << name << ">\n";
     return ret.str();
 }
