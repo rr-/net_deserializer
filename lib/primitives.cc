@@ -70,8 +70,7 @@ std::unique_ptr<Node> net_deserializer::read_primitive_untyped(
         for (std::size_t i = 0; i < 5; i++)
         {
             const auto c = reader.read<uint8_t>();
-            length <<= 7;
-            length |= (c & 0x7F);
+            length |= (c & 0x7F) << (i * 7);
             if (!(c & 0x80))
                 break;
         }
