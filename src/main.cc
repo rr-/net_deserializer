@@ -32,12 +32,12 @@ int main(void)
     try
     {
         auto root_node = net_deserializer::deserialize(test_data);
-        std::cout << root_node->as_xml();
         std::cerr << "Finished" << std::endl;
+        std::cout << root_node->as_xml();
     }
     catch (std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        std::cerr << "Error: " << e.what() << std::endl;
     }
     return 0;
 }
