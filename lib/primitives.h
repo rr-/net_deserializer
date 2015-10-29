@@ -7,6 +7,7 @@ namespace net_deserializer
 {
     enum class PrimitiveType : uint8_t
     {
+        Invalid  = 0,
         Boolean  = 1,
         Byte     = 2,
         Char     = 3,

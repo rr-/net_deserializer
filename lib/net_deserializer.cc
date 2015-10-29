@@ -126,6 +126,7 @@ static std::unique_ptr<Node> read_from_binary_type(
         return read_primitive("Value", c.reader, primitive_type);
 
     if (binary_type == BinaryType::String
+        || binary_type == BinaryType::PrimitiveArray
         || binary_type == BinaryType::Object
         || binary_type == BinaryType::Class
         || binary_type == BinaryType::SystemClass)
@@ -307,7 +308,7 @@ static std::unique_ptr<Node> read_binary_array(Context &c)
     }
 
     const auto binary_type = c.reader.read<BinaryType>();
-    PrimitiveType primitive_type;
+    PrimitiveType primitive_type = PrimitiveType::Invalid;
     if (binary_type == BinaryType::Primitive
         || binary_type == BinaryType::PrimitiveArray)
     {
@@ -395,7 +396,15 @@ static std::unique_ptr<Node> read_object_null_multiple(Context &c)
 
 static std::unique_ptr<Node> read_array_single_primitive(Context &c)
 {
-    throw NotImplementedError("Array of single primitive");
+    auto node = std::make_unique<AggregateNode>("ArraySinglePrimitive");
+    node->add(read_primitive("ObjectId", c.reader, PrimitiveType::Int32));
+    const std::size_t length = c.reader.read<int32_t>();
+    const auto primitive_type = c.reader.read<PrimitiveType>();
+    auto elements_node = std::make_unique<AggregateNode>("Elements");
+    for (std::size_t i = 0; i < length; i++)
+        elements_node->add(read_primitive("Element", c.reader, primitive_type));
+    node->add(std::move(elements_node));
+    return node;
 }
 
 static std::unique_ptr<Node> read_array_single_object(Context &c)
