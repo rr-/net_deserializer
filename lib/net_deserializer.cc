@@ -340,7 +340,8 @@ static std::unique_ptr<Node> read_binary_array(Context &c)
 
 static std::unique_ptr<Node> read_member_primitive_typed(Context &c)
 {
-    throw NotImplementedError("Member primitive typed");
+    const auto primitive_type = c.reader.read<PrimitiveType>();
+    return read_primitive("Element", c.reader, primitive_type);
 }
 
 static std::unique_ptr<Node> read_member_reference(Context &c)
